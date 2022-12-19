@@ -164,7 +164,7 @@
             }
         },
         "_id": "6162876abdcb70afeeaf9cf5",
-        "fname": "Jane",
+        "fname": "Jane,
         "lname": "Austin",
         "email": "janedoe@mailinator.com",
         "profileImage": "https://classroom-training-bucket.s3.ap-south-1.amazonaws.com/user/laura-davidson-QBAH4IldaZY-unsplash.jpg",
