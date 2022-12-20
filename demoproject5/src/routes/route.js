@@ -13,10 +13,10 @@ const router = express.Router()
 
 
 
-router.post("/register",createUser)
-router.post('/login', loginUser)
+router.post("/register",userController.createUser)
+router.post('/login', userController.loginUser)
 router.get("/user/:userId/profile",Authentication,userController.getUserData)
-
+router.put("/user/:userId/profile",userController.updateUser)
 
 
 
@@ -37,3 +37,9 @@ router.get("/user/:userId/profile",Authentication,userController.getUserData)
 router.all("/*",(_,res)=>{
     return res.status(400).send({status:false,msg:"your end point is not correct"})
 })
+
+
+
+
+
+module.exports=router

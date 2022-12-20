@@ -15,7 +15,7 @@ const isValid = function (value) {
 };
 
 const validImage = function (image) {
-    return /(\.jpg|\.jpeg|\.bmp|\.gif|\.png)$/.test(image)
+    return /(\.jpg|\.jpeg|\.bmp|\.gif|\.PNG)$/.test(image)
 }
 
 

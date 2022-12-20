@@ -1,14 +1,16 @@
-const jwt = require('jesonwebtoken');
+const jwt = require('jsonwebtoken');
 const { default: mongoose } = require('mongoose');
 const userModel = require('../models/userModel');
 
 
 const Authentication= async (req,res,next)=> {
 
-const header=req.headers["x-api-key"]
+const header=req.headers["authorization"]
 if(!header) return res.status(400).send({status:false,msg:"header is not present"})
 
-jwt.verify(header,"project/booksManagementGroup43",(err,token)=>{
+const token= header.split(" ")[1]
+
+jwt.verify(token,"project/booksManagementGroup43",(err,token)=>{
     if(err) return res.status(401).send({status:false , msg :"token is not valid"})
 
     else{

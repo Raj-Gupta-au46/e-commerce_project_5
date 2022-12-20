@@ -1,6 +1,7 @@
 const userModel = require("../models/userModel")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
+const saltRounts = 10
 const uploadFile= require("../aws/aws")
 
 const validator = require("../Validators/validation");
@@ -33,7 +34,8 @@ const createUser = async function (req, res) {
         //============================= validation for password ===================================================
         if (!password) return res.status(400).send({ status: false, msg: "password is mandatory" })
         if (!validator.isValidPassword(password)) return res.status(400).send({ status: false, message: "password is invalid ,it should be of minimum 8 digits and maximum of 15 and should have atleast one special character and one number & one uppercase letter" })
-        requestBody.password = await bcrypt.hash(password, 10) //using bcrypt for password hashing
+        const salt = await bcrypt.genSalt(saltRounts)
+        requestBody.password = await bcrypt.hash(password, salt) //using bcrypt for password hashing
 
         //=========================== validation for phone ==================================================
         if (!phone) return res.status(400).send({ status: false, msg: "phone is mandatory" })
@@ -61,7 +63,7 @@ const createUser = async function (req, res) {
             }
             if (typeof Address != "object") {
                 return res.status(400).send({ status: false, message: "Address is in wrong format" })
-            };
+            }
 
             if (!Address.shipping) return res.status(400).send({ status: false, message: "Shipping is not present" })
 
@@ -161,7 +163,7 @@ const updateUser=async (req,res)=>{
 try{
 const userId=req.params.userId
 const files = req.files
-const {fname,lname,email,profileImage,phone,password,address} =req.body
+var {fname,lname,email,phone,password,address} =req.body
 
 if (Object.keys(req.body).length == 0 && (!files || files.length == 0)) {
     
@@ -176,7 +178,7 @@ if(fname) {
     update.fname=fname
 }
 if(lname) {
-    if (!validator.isValidName(fname)) return res.status(400).send({ status: false, msg: "fname is not valid" })
+    if (!validator.isValidName(lname)) return res.status(400).send({ status: false, msg: "fname is not valid" })
 
     update.lname=lname
 }
@@ -203,7 +205,7 @@ if(files.length>0){
 
 if(phone){
     if (!validator.isValidPhone(phone)) return res.status(400).send({ status: false, msg: "phone number is invalid , it should be starting with 6-9 and having 10 digits" })
-    let phoneCheck = await userModel.findOne({ phone: requestBody.phone })
+    let phoneCheck = await userModel.findOne({ phone: phone })
     if (phoneCheck) return res.status(409).send({ status: false, msg: "phone number is already used" })
 
 update.phone=phone
@@ -219,20 +221,23 @@ if(password){
 
 if(address){
 
-if (address.shipping) {
+       address=JSON.parse(address)
+   
+if (address.shipping) {  
+    
 if(address.shipping.street){
 
     if (!validator.isValidName(address.shipping.street)) return res.status(400).send({ status: false, msg: "street name is not valid" })
-    update.address.shipping.street=address.shipping.street
+    update["address.shipping.street"]=address.shipping.street
 }
 if(address.shipping.city){
 
     if (!validator.isValidName(address.shipping.city)) return res.status(400).send({ status: false, msg: "city name is not valid" })
-    update.address.shipping.city=address.shipping.city
+    update["address.shipping.city"]=address.shipping.city
 }
 if(address.shipping.pincode){
-    if (!validator.isValidPincode(address.billing.pincode)) return res.status(400).send({ status: false, msg: "Pincode is not valid" })
-    update.address.shipping.pincode=address.shipping.pincode
+     if (!validator.isValidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, msg: "Pincode is not valid" })
+    update["address.shipping.pincode"]=address.shipping.pincode
 }
 }
 
@@ -240,23 +245,23 @@ if (address.billing) {
 if(address.billing.street){
 
     if (!validator.isValidName(address.billing.street)) return res.status(400).send({ status: false, msg: "street name is not valid" })
-    update.address.billing.street=address.billing.street
+    update["address.billing.street"]=address.billing.street
 }
 if(address.billing.city){
     
     if (!validator.isValidName(address.billing.city)) return res.status(400).send({ status: false, msg: "city name is not valid" })
-    update.address.billing.city=address.billing.city
+    update["address.billing.city"]=address.billing.city
 }
 if(address.billing.pincode){
     if (!validator.isValidPincode(address.billing.pincode)) return res.status(400).send({ status: false, msg: "Pincode is not valid" })
-    update.address.billing.pincode=address.billing.pincode
+    update["address.billing.pincode"]=address.billing.pincode
 }
 }
 }
 
-let updateData = await userModel.findOneAndUpdate({_id:userId},{
-    $set:update
-},{new:true})
+let updateData = await userModel.findOneAndUpdate({_id:userId},update
+    
+,{new:true})
 
 
 return res.status(200).send({status:true,"message": "User profile updated",data:updateData})
@@ -265,8 +270,6 @@ catch(err){
 return res.status(500).send({status:false,msg:err.message})
 }
 }
-
-
 
 
 module.exports = { createUser, loginUser, getUserData ,updateUser}
