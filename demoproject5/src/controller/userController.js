@@ -238,7 +238,7 @@ if(address){
    
 if (address.shipping) {  
 
-    if(typeof address.shipping != Object) return res.status(400).send({status:false,msg:"shipping should be object"})
+    if(typeof address.shipping != "object") return res.status(400).send({status:false,msg:"shipping should be object"})
 
 if(address.shipping.street){
 
@@ -258,7 +258,7 @@ if(address.shipping.pincode){
 
 if (address.billing) {
 
-    if(typeof address.billing != Object) return res.status(400).send({status:false,msg:"billing should be object"})
+    if(typeof address.billing != "object") return res.status(400).send({status:false,msg:"billing should be object"})
 
 if(address.billing.street){
 
@@ -288,4 +288,4 @@ return res.status(500).send({status:false,msg:err.message})
 }
 
 
-module.exports = { createUser, loginUser, getUserData ,updateUser}
+module.exports = { createUser, loginUser, getUserData ,getUser,updateUser}

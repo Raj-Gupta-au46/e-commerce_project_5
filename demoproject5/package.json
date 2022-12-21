@@ -4,7 +4,8 @@
   "description": "e-commerce project ",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start":"npx nodemon src/index.js"
   },
   "author": "Raj , Shiv Raj , Yukta , Shivam",
   "license": "ISC",
@@ -13,10 +14,6 @@
     "bcrypt": "^5.1.0",
     "express": "^4.18.2",
     "jsonwebtoken": "^8.5.1",
-<<<<<<< HEAD
-    "moment": "^2.29.4",
-=======
->>>>>>> 6246550d4999973cf3c26968a81f143d866be1b1
     "mongoose": "^6.8.0",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^2.0.20"

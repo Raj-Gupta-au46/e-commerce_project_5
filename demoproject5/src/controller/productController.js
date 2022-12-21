@@ -1,6 +1,7 @@
 const productModel = require('../models/productModel');
 const validator = require("../Validators/validation");
-const { uploadFile } = require('../aws/aws');
+const  uploadFile  = require('../aws/aws');
+const { default : mongoose} = require ("mongoose");
 
 
 //================================================ creating product ==============================================
@@ -210,6 +211,7 @@ const updateProduct=async function(req,res){
     try{
         let productId=req.params.productId
         let files=req.files
+        let data=req.body
         if(!productId) return res.status(400).send({status:false,msg:"productId is not present"})
         if(!mongoose.isValidObjectId(productId))return res.status(400).send({status:true,msg:"productId is not valid"})
         
@@ -237,7 +239,7 @@ const updateProduct=async function(req,res){
     }
     
     if(price){
-            data.price=Number(price)
+            price=Number(price)
             if(isNaN(price))return res.status(400).send({status:false,msg:"please provide valid price"})
             update.price=price
     }
@@ -251,15 +253,15 @@ const updateProduct=async function(req,res){
         update.installments=installments
         }
     if(isFreeShipping){
-        if(isFreeShipping!="true" || isFreeShipping!="false") return res.status(400).send({status:false,msg:"isFreeShiping value should true or false"})
-        (isFreeShipping=="true") ? isFreeShipping=true : isFreeShipping=false 
-    }
+        if(!["true","false"].includes(isFreeShipping)) return res.status(400).send({status:false,msg:"isFreeShiping value should true or false"})
+            update["isFreeShipping"]=isFreeShipping     
+        }
     if(style){
         if (!validator.isValidName(style)) return res.status(400).send({ status: false, msg: "style is not valid" })
         update.style=style
     }
-    if(files||files.length>0){
-        let imageLink= await uploadFile(files[0])
+    if(files.length>0){
+        let imageLink= await uploadFile(files[0].originalname)
         update.productImage=imageLink
         if (!validator.validImage(imageLink)) {
             return res.status(400).send({ status: false, msg: "profileImage is in incorrect format" })
@@ -292,12 +294,12 @@ const updateProduct=async function(req,res){
             if (!getId) {
                 return res.status(404).send({ status: false, message: "Product Not Found!!!!!!!!!!!!!! or product may be deleted already" })
             }
-    
+               
             getId.isDeleted=true
             getId.deletedAt=Date.now()
             getId.save()
     
-            return res.status(200).send({ status: true, message: "Product is deleted successfully" })
+            return res.status(200).send({ status: true, message: "Product is deleted successfully"})
         }
         catch (error) {
             return res.status(500).send({ status: false, message: error.message })
