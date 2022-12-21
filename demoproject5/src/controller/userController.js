@@ -188,7 +188,7 @@ if(email){
         return res.status(400).send({ status: false, message: `Please fill valid or mandatory email ` })
     }
 let emailData= await userModel.findOne({ email: email })
-if(emailData)  return res.status(400).send({ status: false, message: `email  is already present` })
+if(emailData)  return res.status(409).send({ status: false, message: `email  is already present` })
 
 update.email=email
 
@@ -224,7 +224,9 @@ if(address){
        address=JSON.parse(address)
    
 if (address.shipping) {  
-    
+
+    if(typeof address.shipping != Object) return res.status(400).send({status:false,msg:"shipping should be object"})
+
 if(address.shipping.street){
 
     if (!validator.isValidName(address.shipping.street)) return res.status(400).send({ status: false, msg: "street name is not valid" })
@@ -242,6 +244,9 @@ if(address.shipping.pincode){
 }
 
 if (address.billing) {
+
+    if(typeof address.billing != Object) return res.status(400).send({status:false,msg:"billing should be object"})
+
 if(address.billing.street){
 
     if (!validator.isValidName(address.billing.street)) return res.status(400).send({ status: false, msg: "street name is not valid" })
@@ -260,9 +265,7 @@ if(address.billing.pincode){
 }
 
 let updateData = await userModel.findOneAndUpdate({_id:userId},update
-    
-,{new:true})
-
+    ,{new:true})
 
 return res.status(200).send({status:true,"message": "User profile updated",data:updateData})
 }

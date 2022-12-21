@@ -15,7 +15,7 @@ const isValid = function (value) {
 };
 
 const validImage = function (image) {
-    return /(\.jpg|\.jpeg|\.bmp|\.gif|\.PNG)$/.test(image)
+    return /(\.jpg|\.jpeg|\.bmp|\.gif|\.PNG|\.png)$/.test(image)
 }
 
 
@@ -56,7 +56,10 @@ let isValidStatus = (status) => {
     return ['pending', 'completed', 'cancelled'].includes(status);
 }
 
+let isValidPrice=(price)=>{
+    return /\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})/.test(price)
+}
 
 
 
-module.exports={isValid,isValidBody,isValidName,isValidEmail,isValidPassword,isValidObjectId,isValidPincode,isValidPhone,isValidSize,isValidNumber,isValidStatus,validImage}
+module.exports={isValidPrice,isValid,isValidBody,isValidName,isValidEmail,isValidPassword,isValidObjectId,isValidPincode,isValidPhone,isValidSize,isValidNumber,isValidStatus,validImage}

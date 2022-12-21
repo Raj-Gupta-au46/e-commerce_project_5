@@ -43,7 +43,7 @@
   updatedAt: {timestamp}
 }
 ```
-<!-- {
+<!-- <!-- {
     shipping: {
       street: "delhi",
       city: delhi1,
@@ -56,11 +56,11 @@
     }
   } -->
 
-{"shipping": {
+<!-- {"shipping": {
   "street": "Road",
   "city": "mp",
   "pincode": 452001},
-} 
+}  --> -->
 
 
 
