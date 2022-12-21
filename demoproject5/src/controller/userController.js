@@ -1,8 +1,10 @@
 const userModel = require("../models/userModel")
 const jwt = require("jsonwebtoken")
-
-
+const { uploadFile } = require("../aws/aws")
+const bcrypt = require("bcrypt")
 const validator = require("../Validators/validation")
+
+
 
 //========================================== creating user ===========================================
 const createUser = async function (req, res) {
@@ -94,6 +96,7 @@ const createUser = async function (req, res) {
 
 
 
+
 //========================================= user login =====================================================
 const loginUser = async function (req, res) {
     try {
@@ -122,7 +125,7 @@ const loginUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "wrong password" })
         }
         //=================================== token creation ================================================
-        let token = jwt.sign({ "userId": user._id }, "project/booksManagementGroup43", { expiresIn: '24h' });
+        let token = jwt.sign({ "userId": user._id }, "project/booksManagementGroup05", { expiresIn: '24h' });
 
 
         return res.status(200).send({ status: true, message: "login successfully", data: { userId: user._id, token: token } })
@@ -132,7 +135,130 @@ const loginUser = async function (req, res) {
 }
 
 
+//================================= getting userdetails ===================================================
+const getUser = async function (req, res) {
+    try {
+        let userId = req.params.userId;
+        const user = await userModel.findOne({ _id: userId })
+        return res.status(200).send({ status: true, message: 'User Details', data: user })
+    } catch (error) {
+        res.status(500).send({ status: false, message: error.message })
+    }
+}
 
 
 
-module.exports = { createUser, loginUser }
+const updateUser = async function (req, res) {
+    try {
+        let userId = req.params.userId;
+        let body = req.body
+        let { fname, lname, email, phone, password, address } = body;
+        let files = req.files
+        const data = {};
+
+        //========================== if no data is provided to update =====================================
+
+        if (!(fname || lname || email || phone || password || address || files)) {
+            return res.status(400).send({ status: false, message: "enter keys to update user." })
+        }
+        //============================== fname validation ========================================
+        if (fname) {
+            if (!validator.isValidName(fname)) return res.status(400).send({ status: false, msg: "fname is not valid" })
+            let checkfname = await userModel.findOne({ fname: body.fname })
+            if (checkfname) return res.status(400).send({ status: false, message: "The Same fname is already present" })
+            data.fname = fname;
+        }
+        //=============================== lname validation ===========================================
+        if (lname) {
+            if (!validator.isValidName(lname)) return res.status(400).send({ status: false, msg: "lname is not valid" })
+            let checklname = await userModel.findOne({ lname: body.lname })
+            if (checklname) return res.status(400).send({ status: false, message: "The Same lname is already present" })
+            data.lname = lname;
+        }
+        //================================ email validation ==========================================
+        if (email) {
+            if (!validator.isValidEmail(email)) return res.status(400).send({ status: false, message: "Please enter Valid email" })
+            let emailData = await userModel.findOne({ email: body.email });
+            if (emailData) return res.status(400).send({ status: false, message: "The email is already Present" })
+            data.email = email.toLowerCase();
+        }
+        //========================== phone validation ==============================================
+        if (phone) {
+            if (!validator.isValidPhone(phone)) return res.status(400).send({ status: false, message: "Please enter Valid phone number" })
+            let phoneData = await userModel.findOne({ phone: body.phone });
+            if (phoneData) return res.status(400).send({ status: false, message: "The phone number is already Present" })
+            data.phone = phone;
+        }
+        //================================ password validation ============================================
+        if (password) {
+            if (!validator.isValidPassword(password)) return res.status(400).send({ status: false, message: "Please enter valid password" })
+            data.password = await bcrypt.hash(password, 10);
+        }
+        //==================================== address validation ============================================
+        if (address) {
+            let addressparse
+            try {
+                addressparse = JSON.parse(address)
+            }
+            catch (err) {
+                return res.status(400).send({ status: false, message: "please provide adress in JSON object" })
+            }
+            
+            if (typeof addressparse != "object") {
+                return res.status(400).send({ status: false, message: "Address is in wrong format" })
+            }
+
+            if (addressparse.shipping) {
+                if (typeof addressparse.shipping != "object") {
+                    return res.status(400).send({ status: false, message: "shipping Address is in wrong format" })
+                }
+                if (addressparse.shipping.street) {
+                    data["address.shipping.street"] = addressparse.shipping.street
+                }
+                if (addressparse.shipping.city) {
+                    data["address.shipping.city"] = addressparse.shipping.city
+                }
+                if (addressparse.shipping.pincode) {
+                    if (!validator.isValidPincode(addressparse.shipping.pincode)) return res.status(400).send({ status: false, message: "Please enter valid pincode" })
+                    data["address.shipping.pincode"] = addressparse.shipping.pincode
+                }
+            }
+
+            if (addressparse.billing) {
+                if (typeof addressparse.billing != "object") {
+                    return res.status(400).send({ status: false, message: "billing Address is in wrong format" })
+                }
+                if (addressparse.billing.street) {
+                    data["address.billing.street"] = addressparse.billing.street
+                }
+                if (addressparse.billing.city) {
+                    data["address.billing.city"] = addressparse.billing.city
+                }
+                if (addressparse.billing.pincode) {
+                    if (!validator.isValidPincode(addressparse.billing.pincode)) return res.status(400).send({ status: false, message: "Please enter valid pincode" })
+                    data["address.billing.pincode"] = addressparse.billing.pincode
+                }
+
+            }
+        }
+        //============================ profileimage validation ================================================
+        if (files && files.length != 0) {
+            let profileImgUrl = await uploadFile(files[0]);
+            if (!validator.validImage(profileImgUrl)) {
+                return res.status(400).send({ status: false, msg: "productImage is in incorrect format" })
+            }
+            data.profileImage = profileImgUrl;
+        }
+        //=============================== data updation ==================================================
+        let update = await userModel.findOneAndUpdate({ _id: userId }, data, { new: true })
+        return res.status(200).send({ status: true, message: "Successfully updated", data: update });
+
+    } catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
+    }
+
+}
+
+
+
+module.exports = { createUser, loginUser , getUser , updateUser }
